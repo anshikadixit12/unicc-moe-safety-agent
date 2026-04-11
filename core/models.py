@@ -130,3 +130,5 @@ class FinalVerdict(BaseModel):
 
     # Metrics snapshot (Team 2 UI category_radar section)
     metrics_snapshot: dict = Field(default_factory=dict)
+    disagreement_detected: bool = False
+    disagreement_gap: float = 0.0

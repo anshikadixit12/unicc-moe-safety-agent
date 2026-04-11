@@ -89,6 +89,18 @@ async def aggregate(
     # ── Step 7: Category radar (for Team 2 UI's radar chart section) ─────────
     metrics_snapshot = _build_metrics_snapshot(expert_results, merged_findings)
 
+# ── Step 7b: Disagreement detection ──────────────────────────────────────
+    scores = [r.score for r in expert_results]
+    max_score = max(scores)
+    min_score = min(scores)
+    disagreement_gap = max_score - min_score
+    disagreement_flag = disagreement_gap > 30
+
+    if disagreement_flag:
+        logger.warning(
+            f"Expert disagreement detected! Gap={disagreement_gap:.1f} "
+            f"scores={scores} — flagging for ASRB review"
+        )
     # ── Step 8: Generate unified summary + recommendation via LLM ─────────────
     summary, recommendation = await _generate_narrative(
         system_name, overall_score, final_risk,
@@ -106,7 +118,9 @@ async def aggregate(
         recommendation=recommendation,
         top_risks=top_risks,
         policy_alignment=policy_alignment,
-        metrics_snapshot=metrics_snapshot
+     metrics_snapshot=metrics_snapshot,
+        disagreement_detected=disagreement_flag,
+        disagreement_gap=round(disagreement_gap, 1)
     )
 
 
