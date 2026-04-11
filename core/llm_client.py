@@ -14,8 +14,7 @@ load_dotenv()
 PROVIDER = os.getenv("ROUTER_MODEL_PROVIDER", "anthropic").lower()
 MODEL    = os.getenv("ROUTER_MODEL_NAME", "claude-haiku-4-5-20251001")
 
-
-async def llm_call(system_prompt: str, user_message: str, max_tokens: int = 1000) -> str:
+async def llm_call(system_prompt: str, user_message: str, max_tokens: int = 1000, temperature: float = 0.7) -> str:
     """
     Single async function to call the configured LLM.
     Returns the model's text response as a plain string.
@@ -48,12 +47,13 @@ async def _call_anthropic(system_prompt: str, user_message: str, max_tokens: int
 
 # ── OpenAI ────────────────────────────────────────────────────────────────────
 
-async def _call_openai(system_prompt: str, user_message: str, max_tokens: int) -> str:
+async def _call_openai(system_prompt: str, user_message: str, max_tokens: int, temperature: float = 0.7) -> str:
     from openai import AsyncOpenAI
     client = AsyncOpenAI(api_key=os.getenv("OPENAI_API_KEY"))
     response = await client.chat.completions.create(
         model=MODEL,
         max_tokens=max_tokens,
+        temperature=temperature,
         messages=[
             {"role": "system", "content": system_prompt},
             {"role": "user",   "content": user_message}
