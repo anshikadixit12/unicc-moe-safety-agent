@@ -134,5 +134,5 @@ class FinalVerdict(BaseModel):
     metrics_snapshot: dict = Field(default_factory=dict)
     disagreement_detected: bool = False
     disagreement_gap: float = 0.0
-   evaluation_id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-evaluated_at: str = Field(default_factory=lambda: datetime.datetime.utcnow().isoformat())
+    evaluation_id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    evaluated_at: str = Field(default_factory=lambda: datetime.datetime.utcnow().isoformat())
