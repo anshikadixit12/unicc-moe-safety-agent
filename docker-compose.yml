@@ -1,0 +1,12 @@
+version: '3.8'
+services:
+  moe-safety-agent:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - ROUTER_MODEL_PROVIDER=openai
+      - ROUTER_MODEL_NAME=gpt-4o-mini
+    volumes:
+      - ./.env:/app/.env
