@@ -80,7 +80,7 @@ async def evaluate(evaluation_text: str, policies: list[str], pdf_bytes: bytes |
     Run Expert 2 evaluation.
     Tries Team 2's webhook first, falls back to LLM replication.
     """
-    if pdf_bytes and TEAM2_WEBHOOK_URL:
+    if TEAM2_WEBHOOK_URL:
         try:
             return await _call_team2_webhook(pdf_bytes, policies)
         except Exception as e:
