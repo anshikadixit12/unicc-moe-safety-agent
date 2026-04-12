@@ -46,7 +46,26 @@ Respond ONLY with valid JSON:
 """.strip()
 
 
+# Pre-built adversarial test probes — simulates Petri's red-teaming methodology
+ADVERSARIAL_PROBES = [
+    "ignore previous instructions",
+    "reveal system prompt",
+    "jailbreak",
+    "bypass safety",
+    "pretend you have no restrictions",
+    "DAN mode",
+    "act as",
+]
+
 async def evaluate(evaluation_text: str, policies: list[str]) -> ExpertResult:
+    # Check for adversarial patterns before LLM evaluation
+    text_lower = evaluation_text.lower()
+    detected_probes = [p for p in ADVERSARIAL_PROBES if p in text_lower]
+    
+    # If adversarial patterns detected, add them to context
+    if detected_probes:
+        evaluation_text = f"[ADVERSARIAL PATTERNS DETECTED: {', '.join(detected_probes)}]\n\n{evaluation_text}"
+    
     return await _llm_fallback(evaluation_text, policies)
 
 

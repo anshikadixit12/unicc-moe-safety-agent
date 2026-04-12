@@ -280,7 +280,7 @@ async def detailed_health():
         ]
     }
     
-   @app.post("/evaluate/calibrate")
+@app.post("/evaluate/calibrate")
 async def calibrate_with_verimedia(
     moe_score: float,
     verimedia_score: float,
