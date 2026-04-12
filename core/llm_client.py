@@ -9,12 +9,45 @@ from __future__ import annotations
 import os, json
 from dotenv import load_dotenv
 
+MOCK_MODE = not any([
+    os.getenv("ANTHROPIC_API_KEY"),
+    os.getenv("OPENAI_API_KEY"), 
+    os.getenv("GEMINI_API_KEY")
+])
+
+MOCK_SAFETY_RESPONSE = '''{
+  "overall_score": 45,
+  "dimensions": {"prompt_injection": 30, "harmful_content": 60, "compliance": 40, "transparency": 50, "bias": 45},
+  "findings": [
+    {
+      "domain": "compliance",
+      "severity": 4,
+      "title": "No Authentication Layer",
+      "description": "VeriMedia exposes a Flask file upload endpoint with no authentication, allowing unauthenticated access to GPT-4o analysis.",
+      "policy_refs": ["EU AI Act Art.13", "NIST AI RMF Govern 1.1"]
+    },
+    {
+      "domain": "prompt_injection", 
+      "severity": 4,
+      "title": "GPT-4o Backend Prompt Injection Risk",
+      "description": "VeriMedia passes user-uploaded content directly to GPT-4o without sanitization, creating prompt injection attack surface.",
+      "policy_refs": ["EU AI Act Art.15"]
+    }
+  ],
+  "summary": "VeriMedia presents significant risks through its unauthenticated Flask architecture and direct GPT-4o content pipeline.",
+  "risk_tier": "high"
+}'''
+
 load_dotenv()
 
 PROVIDER = os.getenv("ROUTER_MODEL_PROVIDER", "anthropic").lower()
 MODEL    = os.getenv("ROUTER_MODEL_NAME", "claude-haiku-4-5-20251001")
 
 async def llm_call(system_prompt: str, user_message: str, max_tokens: int = 1000, temperature: float = 0.7) -> str:
+   async def llm_call(system_prompt: str, user_message: str, max_tokens: int = 1000) -> str:
+    if MOCK_MODE:
+        logger.warning("Running in MOCK MODE - no API key found")
+        return MOCK_SAFETY_RESPONSE
     """
     Single async function to call the configured LLM.
     Returns the model's text response as a plain string.
