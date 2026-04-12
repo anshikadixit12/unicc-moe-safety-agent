@@ -280,6 +280,29 @@ async def detailed_health():
         ]
     }
     
+   @app.post("/evaluate/calibrate")
+async def calibrate_with_verimedia(
+    moe_score: float,
+    verimedia_score: float,
+    system_name: str = "AI System"
+):
+    """
+    Cross-calibrates MoE safety scores against VeriMedia toxicity scores.
+    This demonstrates council synthesis by comparing independent evaluations.
+    """
+    difference = abs(moe_score - verimedia_score)
+    agreement = "strong" if difference < 10 else "moderate" if difference < 25 else "weak"
+    
+    return {
+        "system_name": system_name,
+        "moe_score": moe_score,
+        "verimedia_score": verimedia_score,
+        "score_difference": round(difference, 1),
+        "agreement_level": agreement,
+        "calibration_note": f"MoE and VeriMedia {'agree' if agreement == 'strong' else 'partially agree' if agreement == 'moderate' else 'disagree'} on this system's safety level",
+        "recommendation": "Scores within 10 points indicate strong cross-system validation" if agreement == "strong" else "Significant disagreement warrants human ASRB review"
+    }
+
 @app.get("/experts")
 async def list_experts():
     """Returns the 3 experts and their capabilities."""
