@@ -153,6 +153,7 @@ Respond ONLY with the JSON object as specified.
 
 def _parse_response(data: dict) -> ExpertResult:
     score = float(data.get("overall_score", 70))
+    confidence = min(len(data.get("findings", [])) * 20, 100.0)
     findings = []
     for f in data.get("findings", []):
         try:
@@ -174,6 +175,7 @@ def _parse_response(data: dict) -> ExpertResult:
         risk_tier=_score_to_risk(score),
         findings=findings,
         summary=data.get("summary", ""),
+        confidence=confidence,
         raw_output=data
     )
 

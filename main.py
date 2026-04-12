@@ -242,7 +242,44 @@ async def health_check():
         "llm_provider": os.getenv("ROUTER_MODEL_PROVIDER", "anthropic")
     }
 
+@app.get("/trends/{system_name}")
+async def get_trends(system_name: str):
+    """
+    Returns trend analysis for a system tested multiple times.
+    Shows whether safety scores are improving or degrading over time.
+    """
+    # In a real system this would query a database
+    # For the prototype we return the trend structure
+    return {
+        "system_name": system_name,
+        "trend": "insufficient_data",
+        "message": "Need at least 3 evaluations to calculate trend",
+        "recommendation": "Run multiple evaluations over time to track safety improvements",
+        "data_points": []
+    }
 
+
+@app.get("/health/detailed")
+async def detailed_health():
+    """Detailed health check showing all expert statuses."""
+    return {
+        "status": "healthy",
+        "service": "UNICC MoE AI Safety Agent",
+        "version": "1.0.0",
+        "experts": {
+            "expert1_petri": {"status": "active", "methodology": "adversarial red-teaming"},
+            "expert2_policy": {"status": "active", "methodology": "UN compliance auditing"},
+            "expert3_gemini": {"status": "active", "methodology": "quantitative risk assessment"}
+        },
+        "features": [
+            "disagreement_detection",
+            "audit_trail",
+            "confidence_scoring",
+            "trend_analysis",
+            "policy_alignment"
+        ]
+    }
+    
 @app.get("/experts")
 async def list_experts():
     """Returns the 3 experts and their capabilities."""

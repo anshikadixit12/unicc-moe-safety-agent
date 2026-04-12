@@ -98,7 +98,7 @@ class ExpertResult(BaseModel):
     summary:      str                    = ""
     raw_output:   Optional[dict]         = None   # original response from the expert (for debugging)
     weight_used:  float                  = 1.0    # filled in by aggregator after routing
-
+    confidence:   float                  = 0.0
 
 # ── Aggregator / Final output ─────────────────────────────────────────────────
 
