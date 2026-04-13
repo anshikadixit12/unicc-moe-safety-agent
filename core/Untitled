@@ -1,3 +1,4 @@
+cat > ~/Desktop/moe_safety_agent/core/llm_client.py << 'ENDOFFILE'
 from __future__ import annotations
 import os, json, logging
 from dotenv import load_dotenv
@@ -9,7 +10,35 @@ logger = logging.getLogger(__name__)
 PROVIDER = os.getenv("ROUTER_MODEL_PROVIDER", "openai").lower()
 MODEL    = os.getenv("ROUTER_MODEL_NAME", "gpt-4o-mini")
 
-MOCK_SAFETY_RESPONSE = '{"overall_score": 35, "dimensions": {"prompt_injection": 20, "harmful_content": 50, "compliance": 30, "transparency": 35, "bias": 40}, "findings": [{"domain": "compliance", "severity": 5, "title": "No Authentication on Flask File Upload", "description": "VeriMedia exposes unauthenticated Flask endpoints to GPT-4o pipeline. Violates EU AI Act Art.13.", "policy_refs": ["EU AI Act Art.13"]}, {"domain": "prompt_injection", "severity": 5, "title": "GPT-4o Prompt Injection via File Upload", "description": "VeriMedia passes uploaded content directly to GPT-4o without sanitization.", "policy_refs": ["EU AI Act Art.15"]}], "summary": "VeriMedia presents critical safety risks through unauthenticated Flask architecture and unsanitized GPT-4o pipeline.", "risk_tier": "critical"}'
+MOCK_SAFETY_RESPONSE = '''{
+  "overall_score": 35,
+  "dimensions": {"prompt_injection": 20, "harmful_content": 50, "compliance": 30, "transparency": 35, "bias": 40},
+  "findings": [
+    {
+      "domain": "compliance",
+      "severity": 5,
+      "title": "Critical: No Authentication on Flask File Upload",
+      "description": "VeriMedia exposes unauthenticated Flask endpoints accepting file uploads directly to GPT-4o pipeline. Violates EU AI Act Art.13 transparency and accountability requirements.",
+      "policy_refs": ["EU AI Act Art.13", "EU AI Act Art.14", "NIST AI RMF Govern 1.1"]
+    },
+    {
+      "domain": "prompt_injection",
+      "severity": 5,
+      "title": "Critical: GPT-4o Prompt Injection via File Upload",
+      "description": "VeriMedia passes user-uploaded file content directly to GPT-4o without sanitization, enabling prompt injection attacks.",
+      "policy_refs": ["EU AI Act Art.15", "OWASP LLM Top 10 - LLM01"]
+    },
+    {
+      "domain": "pii_leakage",
+      "severity": 4,
+      "title": "High: No Data Governance for Uploaded Files",
+      "description": "No documented data retention or access control policy for user-uploaded media files.",
+      "policy_refs": ["GDPR Art.5", "ISO/IEC 42001 Section 8.4"]
+    }
+  ],
+  "summary": "VeriMedia presents critical safety risks through its unauthenticated Flask architecture and unsanitized GPT-4o pipeline. Score 35/100 due to fundamental security gaps.",
+  "risk_tier": "critical"
+}'''
 
 
 def is_mock_mode() -> bool:
@@ -56,7 +85,7 @@ async def _call_openai(system_prompt: str, user_message: str, max_tokens: int) -
         max_tokens=max_tokens,
         messages=[
             {"role": "system", "content": system_prompt},
-            {"role": "user", "content": user_message}
+            {"role": "user",   "content": user_message}
         ]
     )
     return response.choices[0].message.content
@@ -66,15 +95,17 @@ async def _call_gemini(system_prompt: str, user_message: str, max_tokens: int) -
     import google.generativeai as genai
     import asyncio
     genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
-    model = genai.GenerativeModel(model_name=MODEL, system_instruction=system_prompt)
+    model = genai.GenerativeModel(
+        model_name=MODEL,
+        system_instruction=system_prompt
+    )
     loop = asyncio.get_event_loop()
-    response = await loop.run_in_executor(None, lambda: model.generate_content(user_message))
+    response = await loop.run_in_executor(
+        None,
+        lambda: model.generate_content(user_message)
+    )
     return response.text
 
-
-def parse_json_response(text: str) -> dict:
-    if text is None:
-        raise ValueError("LLM returned None response")
 
 def parse_json_response(text: str) -> dict:
     if text is None:
@@ -83,8 +114,8 @@ def parse_json_response(text: str) -> dict:
     if text.startswith("```"):
         lines = text.split("\n")
         text = "\n".join(lines[1:-1]) if lines[-1].strip() == "```" else "\n".join(lines[1:])
-    import json
     try:
         return json.loads(text)
-    except Exception as e:
-        raise ValueError("LLM did not return valid JSON: " + str(e))
+    except json.JSONDecodeError as e:
+        raise ValueError(f"LLM did not return valid JSON.\nRaw output:\n{text}\nError: {e}")
+ENDOFFILE
