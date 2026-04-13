@@ -29,6 +29,12 @@ RISK_ORDER = {
     RiskTier.CRITICAL: 4
 }
 
+RISK_ESCALATE = {
+    RiskTier.LOW: RiskTier.MEDIUM,
+    RiskTier.MEDIUM: RiskTier.HIGH,
+    RiskTier.HIGH: RiskTier.CRITICAL,
+    RiskTier.CRITICAL: RiskTier.CRITICAL
+}
 
 async def aggregate(
     expert_results: list[ExpertResult],
@@ -101,6 +107,11 @@ async def aggregate(
             f"Expert disagreement detected! Gap={disagreement_gap:.1f} "
             f"scores={scores} — flagging for ASRB review"
         )
+        final_risk = RISK_ESCALATE[final_risk]
+        asrb_status = "ESCALATED — expert disagreement exceeds threshold. Manual review required."
+    else:
+        asrb_status = "NOT_TRIGGERED"
+
     # ── Step 8: Generate unified summary + recommendation via LLM ─────────────
     summary, recommendation = await _generate_narrative(
         system_name, overall_score, final_risk,
@@ -120,7 +131,8 @@ async def aggregate(
         policy_alignment=policy_alignment,
      metrics_snapshot=metrics_snapshot,
         disagreement_detected=disagreement_flag,
-        disagreement_gap=round(disagreement_gap, 1)
+        disagreement_gap=round(disagreement_gap, 1),
+        asrb_status=asrb_status,
     )
 
 

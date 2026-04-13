@@ -130,9 +130,9 @@ class FinalVerdict(BaseModel):
     top_risks:        list[str]           = Field(default_factory=list)
     policy_alignment: list[PolicyAlignment] = Field(default_factory=list)
 
-    # Metrics snapshot (Team 2 UI category_radar section)
     metrics_snapshot: dict = Field(default_factory=dict)
     disagreement_detected: bool = False
     disagreement_gap: float = 0.0
+    asrb_status: str = "NOT_TRIGGERED"
     evaluation_id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    evaluated_at: str = Field(default_factory=lambda: datetime.datetime.utcnow().isoformat())
+    evaluated_at: str = Field(default_factory=lambda: datetime.datetime.now(datetime.timezone.utc).isoformat())
